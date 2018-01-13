@@ -3,5 +3,9 @@
 {% block content %}
     <h2>{{ user.username }}'s Repos</h2>
     <hr>
-{#    RepoList#}
+    <ul>
+    {% for repo in repo_list %}
+        <li>{{ repo.name }}</li>
+    {% endfor %}
+    </ul>
 {% endblock %}
