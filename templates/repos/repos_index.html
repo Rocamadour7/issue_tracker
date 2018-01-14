@@ -5,7 +5,7 @@
     <hr>
     <ul>
     {% for repo in repo_list %}
-        <li>{{ repo.name }}</li>
+        <li><a href="{% url 'repos:issues' repo.name %}">{{ repo.name }}</a></li>
     {% endfor %}
     </ul>
 {% endblock %}

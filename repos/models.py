@@ -4,6 +4,21 @@ from django.db import models
 
 class Repo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    name = models.SlugField(max_length=100)
     description = models.TextField()
     language = models.CharField(max_length=20)
+
+
+class Issue(models.Model):
+    ISSUE_STATE = (
+        ('o', 'open'),
+        ('s', 'stale'),
+        ('r', 'resolved'),
+    )
+    repo = models.ForeignKey(Repo, on_delete=models.CASCADE)
+    title = models.SlugField(max_length=100)
+    body = models.TextField()
+    author = models.CharField(max_length=100)
+    state = models.CharField(max_length=1, choices=ISSUE_STATE)
+    created_at = models.DateTimeField()
+    due_date = models.DateTimeField(null=True)
