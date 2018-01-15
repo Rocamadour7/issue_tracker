@@ -1,5 +1,7 @@
 import requests
-from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+
 from .models import Repo, Issue
 
 
@@ -40,3 +42,35 @@ def update_issues_decorator(func):
                 Issue.objects.get_or_create(repo=repo, title=title, defaults=defaults)
         return func(request, *args, **kwargs)
     return wrapper
+
+
+def check_due_dates_decorator(func):
+    def wrapper(request, *args, **kwargs):
+        user = request.user
+        repo_name = kwargs.get('name')
+        try:
+            repo = get_object_or_404(Repo, user=user, name=repo_name)
+        except (KeyError, Repo.DoesNotExist):
+            pass
+        else:
+            issue_list = repo.issue_set.all()
+            for issue in issue_list:
+                if issue.due_date:
+                    delta = issue.due_date - timezone.now()
+                    if delta.days < 0 and not (issue.state != 'r' or issue.state != 'p'):
+                        issue.state = 's'
+                        issue.save()
+                    elif delta.days > 0 and not (issue.state != 'r' or issue.state != 'p'):
+                        issue.state = 'o'
+                        issue.save()
+        finally:
+            return func(request, *args, **kwargs)
+    return wrapper
+
+
+def check_if_date_is_valid(date):
+    delta = date - timezone.now()
+    if delta.days > 0:
+        return True
+    else:
+        return False

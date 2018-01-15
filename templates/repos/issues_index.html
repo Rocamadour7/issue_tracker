@@ -1,15 +1,112 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    {% if error_message %}
+        <div class="alert alert-primary" role="alert">
+          {{ error_message }}
+        </div>
+    {% endif %}
     <h2>{{ repo_name }}'s Issues</h2>
     <hr>
-    <ul>
-    {% for issue in issue_list %}
-        <li>{{ issue.title }} | {{ issue.get_state_display|capfirst }} | Due Date: {{ issue.due_date }}</li>
-    {% endfor %}
-    </ul>
 
-    <button type="button" class="btn btn-primary" href="{% url 'repos:new_issue' repo_name %}" data-toggle="modal" data-target="#newIssue">
+    <table class="table table-hover">
+        <caption>List of Stale Issues</caption>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Author</th>
+                <th scope="col">Due Date</th>
+                <th scope="col">State</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issue_list %}
+            {% if issue.state == 's' %}
+                <tr class="table-danger">
+                    <td>{{ issue.title }}</td>
+                    <td>{{ issue.author }}</td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeDueDate_{{ forloop.counter }}">{{ issue.due_date }}</button></td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeState_{{ forloop.counter }}">{{ issue.get_state_display|capfirst }}</button></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="table table-hover">
+        <caption>List of Open Issues</caption>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Author</th>
+                <th scope="col">Due Date</th>
+                <th scope="col">State</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issue_list %}
+            {% if issue.state == 'o' %}
+                <tr>
+                    <td>{{ issue.title }}</td>
+                    <td>{{ issue.author }}</td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeDueDate_{{ forloop.counter }}">{{ issue.due_date }}</button></td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeState_{{ forloop.counter }}">{{ issue.get_state_display|capfirst }}</button></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="table table-hover">
+        <caption>List of In Progress Issues</caption>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Author</th>
+                <th scope="col">Due Date</th>
+                <th scope="col">State</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issue_list %}
+            {% if issue.state == 'p' %}
+                <tr class="table-primary">
+                    <td>{{ issue.title }}</td>
+                    <td>{{ issue.author }}</td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeDueDate_{{ forloop.counter }}">{{ issue.due_date }}</button></td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeState_{{ forloop.counter }}">{{ issue.get_state_display|capfirst }}</button></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="table table-hover">
+        <caption>List of Resolved Issues</caption>
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Author</th>
+                <th scope="col">Due Date</th>
+                <th scope="col">State</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issue_list %}
+            {% if issue.state == 'r' %}
+                <tr class="table-success">
+                    <td>{{ issue.title }}</td>
+                    <td>{{ issue.author }}</td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeDueDate_{{ forloop.counter }}">{{ issue.due_date }}</button></td>
+                    <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeState_{{ forloop.counter }}">{{ issue.get_state_display|capfirst }}</button></td>
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newIssue">
         New Issue
     </button>
 
@@ -28,28 +125,92 @@
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label" for="issueTitle">Title:</label>
                             <div class="col-sm-10">
-                                <input id="issueTitle" class="form-control" type="text" placeholder="Enter Issue's Title">
+                                <input id="issueTitle" class="form-control" type="text" name="title" placeholder="Enter Issue's Title">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label" for="issueBody">Body:</label>
                             <div class="col-sm-10">
-                                <textarea id="issueBody" class="form-control" placeholder="Describe the issue." rows="3" style="resize: none"></textarea>
+                                <textarea id="issueBody" class="form-control" placeholder="Describe the issue." name="body" rows="3" style="resize: none"></textarea>
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label" for="issueDueDate">Due Date:</label>
                             <div class="col-sm-10">
-                                <input type="datetime-local" id="issueDueDate" class="form-control">
+                                <input type="datetime-local" id="issueDueDate" name="due_date" class="form-control">
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="submit" class="btn btn-primary">Add Issue</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    {% for issue in issue_list %}
+        <div class="modal fade" id="changeDueDate_{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="changeDueDate_{{ forloop.counter }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changeDueDateLabel">Change Due Date</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{% url 'repos:change_due_date' repo_name issue.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="newDueDate">Due Date:</label>
+                                <div class="col-sm-10">
+                                    <input type="datetime-local" id="newDueDate" name="due_date" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Change Due Date</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% for issue in issue_list %}
+        <div class="modal fade" id="changeState_{{ forloop.counter }}" tabindex="-1" role="dialog" aria-labelledby="changeState_{{ forloop.counter }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changeStateLabel">Change State</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{% url 'repos:change_state' repo_name issue.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="newState">State:</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" id="newState" name="state">
+                                        <option value="o">Open</option>
+                                        <option value="p">In Progress</option>
+                                        <option value="r">Resolved</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Change State</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
 {% endblock %}

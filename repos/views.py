@@ -1,12 +1,12 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView
+from django.utils import timezone
 
 from repos.models import Repo, Issue
 
-from repos.utils import update_repos_decorator, update_issues_decorator
+from repos.utils import update_repos_decorator, update_issues_decorator, check_due_dates_decorator, check_if_date_is_valid
 
 repo_list_decorators = [login_required, update_repos_decorator]
 
@@ -20,7 +20,7 @@ class RepoList(ListView):
         return self.request.user.repo_set.all()
 
 
-issue_list_decorators = [login_required, update_issues_decorator]
+issue_list_decorators = [login_required, update_issues_decorator, check_due_dates_decorator]
 
 
 @method_decorator(issue_list_decorators, name='dispatch')
@@ -39,5 +39,56 @@ class IssueList(ListView):
         return context
 
 
+@login_required
 def create_issue(request, name):
-    return HttpResponseRedirect(reverse('repos:issues', args=(name,)))
+    try:
+        repo = get_object_or_404(Repo, user=request.user, name=name)
+        title = request.POST['title']
+        body = request.POST['body']
+        created_at = timezone.now()
+        raw_due_date = request.POST['due_date']
+        due_date = timezone.datetime.strptime(raw_due_date, '%Y-%m-%dT%H:%M')
+        due_date = timezone.make_aware(due_date)
+        is_due_date_valid = check_if_date_is_valid(due_date)
+        if is_due_date_valid:
+            issue = repo.issue_set.create(title=title,
+                                          body=body,
+                                          author=request.user.username,
+                                          created_at=created_at,
+                                          due_date=due_date)
+            issue.save()
+    except(KeyError, Repo.DoesNotExist):
+        return redirect('repos:issues', name=name, error_message='Invalid Issue data.')
+    else:
+        return redirect('repos:issues', name=name)
+
+
+@login_required
+def change_due_date(request, name, issue_id):
+    try:
+        issue = get_object_or_404(Issue, id=issue_id)
+        raw_due_date = request.POST['due_date']
+        due_date = timezone.datetime.strptime(raw_due_date, '%Y-%m-%dT%H:%M')
+        due_date = timezone.make_aware(due_date)
+        is_due_date_valid = check_if_date_is_valid(due_date)
+        if is_due_date_valid:
+            issue.due_date = due_date
+            issue.save()
+    except(KeyError, Issue.DoesNotExist):
+        return redirect('repos:issues', name=name, error_message='Invalid due date.')
+    else:
+        return redirect('repos:issues', name=name)
+
+
+@login_required
+def change_state(request, name, issue_id):
+    try:
+        issue = get_object_or_404(Issue, id=issue_id)
+        new_state = request.POST['state']
+        print(issue.title)
+        issue.state = new_state
+        issue.save()
+    except(KeyError, Issue.DoesNotExist):
+        return redirect('repos:issues', name=name, error_message='Something went wrong.')
+    else:
+        return redirect('repos:issues', name=name)
