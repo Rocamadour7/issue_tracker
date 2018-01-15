@@ -22,14 +22,12 @@
         <tbody>
             {% for issue in issue_list %}
             {% if issue.state == 's' %}
-
                 <tr class="table-danger">
                     <td data-toggle="modal" data-target="#showIssueDetails_{{ forloop.counter }}">{{ issue.title }}</td>
                     <td data-toggle="modal" data-target="#showIssueDetails_{{ forloop.counter }}">{{ issue.author }}</td>
                     <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeDueDate_{{ forloop.counter }}">{{ issue.due_date }}</button></td>
                     <td><button class="btn btn-outline-dark btn-block btn-sm" data-toggle="modal" data-target="#changeState_{{ forloop.counter }}">{{ issue.get_state_display|capfirst }}</button></td>
                 </tr>
-
             {% endif %}
             {% endfor %}
         </tbody>
@@ -106,7 +104,6 @@
             {% endfor %}
         </tbody>
     </table>
-
 
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newIssue">
         New Issue
@@ -216,7 +213,6 @@
                                             <option value="p">In progress</option>
                                             <option value="r">Resolved</option>
                                         {% endif %}
-
                                     </select>
                                 </div>
                             </div>

@@ -1,12 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView
-from django.utils import timezone
 
-from repos.models import Repo, Issue
-
-from repos.utils import update_repos_decorator, update_issues_decorator, check_due_dates_decorator, check_if_date_is_valid
+from repos.utils import *
 
 repo_list_decorators = [login_required, update_repos_decorator]
 
